@@ -6,28 +6,28 @@ import java.util.List;
 public class Grid {
     public static final int GRID_COL_NUM = 80;
     public static final int GRID_ROW_NUM = 80;
-    private Adjacency[][] grid;
+    private Adjacency[][] adjacencyGrid;
     private int[][] rightFlow; // flow of (i, j) to the right side
     private int[][] downFlow;  // flow of (i, j) to the down side
 
     public Grid() {
-        this.grid = new Adjacency[GRID_ROW_NUM][GRID_COL_NUM];
+        this.adjacencyGrid = new Adjacency[GRID_ROW_NUM][GRID_COL_NUM];
         this.rightFlow = new int[GRID_ROW_NUM][GRID_COL_NUM];
         this.downFlow = new int[GRID_ROW_NUM][GRID_COL_NUM];
     }
 
     public Grid(Adjacency[][] grid) {
-        this.grid = grid;
+        this.adjacencyGrid = grid;
         this.rightFlow = new int[GRID_ROW_NUM][GRID_COL_NUM];
         this.downFlow = new int[GRID_ROW_NUM][GRID_COL_NUM];
     }
 
     synchronized public List<Node> getAdjacentNodes(int i, int j) {
-        Adjacency adjacency = grid[i][j];
-        boolean up = i == 0 ? false : (grid[i-1][j] == Adjacency.DOWN || grid[i-1][j] == Adjacency.BOTH);
-        boolean left = j == 0 ? false : (grid[i][j-1] == Adjacency.RIGHT || grid[i][j-1] == Adjacency.BOTH);
-        boolean right = grid[i][j] == Adjacency.RIGHT || grid[i][j] == Adjacency.BOTH;
-        boolean down = grid[i][j] == Adjacency.DOWN || grid[i][j] == Adjacency.BOTH;
+        Adjacency adjacency = adjacencyGrid[i][j];
+        boolean up = i == 0 ? false : (adjacencyGrid[i-1][j] == Adjacency.DOWN || adjacencyGrid[i-1][j] == Adjacency.BOTH);
+        boolean left = j == 0 ? false : (adjacencyGrid[i][j-1] == Adjacency.RIGHT || adjacencyGrid[i][j-1] == Adjacency.BOTH);
+        boolean right = adjacencyGrid[i][j] == Adjacency.RIGHT || adjacencyGrid[i][j] == Adjacency.BOTH;
+        boolean down = adjacencyGrid[i][j] == Adjacency.DOWN || adjacencyGrid[i][j] == Adjacency.BOTH;
         List<Node> adjacentNodes = new ArrayList<>();
         if (up) {
             adjacentNodes.add(new Node(i - 1, j, downFlow[i - 1][j]));
@@ -70,6 +70,27 @@ public class Grid {
         throw new RuntimeException("Wrong param");
     }
 
+    synchronized public void setFlow(int flow, int sourceI, int sourceJ, int targetI, int targetJ) {
+        // UP
+        if (targetI == sourceI - 1 && targetJ == sourceJ) {
+            this.downFlow[targetI][targetJ] = flow;
+        }
+        // left
+        else if (targetI == sourceI && targetJ == sourceJ - 1) {
+            this.rightFlow[targetI][targetJ] = flow;
+        }
+        // right
+        else if (targetI == sourceI && targetJ == sourceJ + 1) {
+            this.rightFlow[sourceI][sourceJ] = flow;
+        }
+        // down
+        else if (targetI == sourceI + 1 && targetJ == sourceJ) {
+            this.downFlow[sourceI][sourceJ] = flow;
+        } else {
+            throw new RuntimeException("Wrong param");
+        }
+    }
+
     synchronized public void setFlowRight(int flow, int i, int j) {
         rightFlow[i][j] = flow;
     }
@@ -78,5 +99,9 @@ public class Grid {
         downFlow[i][j] = flow;
     }
 
-    synchronized public void setGrid(Adjacency value, int i, int j) { grid[i][j] = value; }
+    synchronized public void setGrid(Adjacency value, int i, int j) { adjacencyGrid[i][j] = value; }
+
+    synchronized public Adjacency getAdjacency(int i, int j) {
+        return adjacencyGrid[i][j];
+    }
 }

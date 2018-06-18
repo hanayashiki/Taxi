@@ -12,7 +12,6 @@ public class ConfigParser {
         Header, Map, Flow, Taxi, Request
     }
 
-    ;
     private Status status = Status.Header;
 
     private static final String headerRegex = "#.*#";
@@ -27,21 +26,36 @@ public class ConfigParser {
 
     private static final String flowRegex = "\\(\\s*\\+?\\s*([0-9]+)\\s*,\\s*\\+?\\s*([0-9]+)\\s*\\)\\s*,\\s*\\(\\s*\\+?\\s*([0-9]+)\\s*,\\s*\\+?\\s*([0-9]+)\\s*\\)\\s*,\\s*\\+?\\s*([0-9]+)\\s*";
     private static final Pattern flowRegexPattern = Pattern.compile(flowRegex);
-    private static final String TaxiStatusRegex = "([0-9]+)\\s*,\\s*([0-9]+)\\s*,\\s*([0-9]+)\\s*,\\s*\\(\\s*\\+?\\s*([0-9]+)\\s*,\\s*\\+?\\s*([0-9]+)\\s*\\)";
+    private static final String TaxiStatusRegex = "([0-9]+)\\s*,\\s*([0-9]+)\\s*,\\s*\\+?\\s*([0-9]+)\\s*,\\s*\\(\\s*\\+?\\s*([0-9]+)\\s*,\\s*\\+?\\s*([0-9]+)\\s*\\)";
     private static final Pattern TaxiRegexPattern = Pattern.compile(TaxiStatusRegex);
 
     private Scanner scanner;
     private Grid grid;
-    private List<Taxi> taxiList;
-    private List<Request> requestList;
+
+    private List<Taxi> taxiSettingList;
+    private List<Request> newRequestList;
 
     public ConfigParser(InputStream inputStream) {
         scanner = new Scanner(inputStream);
         grid = new Grid();
-        taxiList = new ArrayList<>(100);
-        requestList = new ArrayList<>(100);
+        taxiSettingList = new ArrayList<>(100);
+        newRequestList = new ArrayList<>(100);
     }
 
+    public ConfigParser(InputStream inputStream, Grid grid) {
+        scanner = new Scanner(inputStream);
+        this.grid = grid;
+        taxiSettingList = new ArrayList<>(100);
+        newRequestList = new ArrayList<>(100);
+    }
+
+    private boolean isValidRow(int i) {
+        return i >= 0 && i < Grid.GRID_ROW_NUM;
+    }
+
+    private boolean isValidColumn(int j) {
+        return j >= 0 && j < Grid.GRID_COL_NUM;
+    }
 
     public void parse() throws InputException {
         String newLine = scanner.nextLine().trim();
@@ -57,8 +71,19 @@ public class ConfigParser {
                         for (int i = 0; i < Grid.GRID_ROW_NUM; i++) {
                             // TODO: fix this. allowing splitting "01230123"
                             String[] row = newLine.replaceAll("\\s", "").split("\\s*");
-                            for (int j = 0; j < Grid.GRID_ROW_NUM; j++) {
-                                grid.setGrid(Adjacency.values()[Integer.parseInt(row[j])], i, j);
+                            for (int j = 0; j < Grid.GRID_COL_NUM; j++) {
+                                int adjacencyCode = Integer.parseInt(row[j]);
+                                grid.setGrid(Adjacency.values()[adjacencyCode], i, j);
+                                if (j == Grid.GRID_COL_NUM - 1 &&
+                                        (adjacencyCode == Adjacency.RIGHT.ordinal() ||
+                                                adjacencyCode == Adjacency.BOTH.ordinal()) ) {
+                                    throw new InputException(newLine);
+                                }
+                                if (i == Grid.GRID_ROW_NUM - 1 &&
+                                        (adjacencyCode == Adjacency.DOWN.ordinal() ||
+                                                adjacencyCode == Adjacency.BOTH.ordinal()) ) {
+                                    throw new InputException(newLine);
+                                }
                             }
                             newLine = scanner.nextLine().trim();
                         }
@@ -76,11 +101,13 @@ public class ConfigParser {
                             int destinationI = Integer.parseInt(matcher.group(3));
                             int destinationJ = Integer.parseInt(matcher.group(4));
                             int flow = Integer.parseInt(matcher.group(5));
-                            // TODO: needs modify
-                            if (sourceI == destinationI - 1) {
-                                grid.setFlowDown(flow, sourceI, sourceJ);
-                            } else if (sourceJ == destinationJ - 1) {
-                                grid.setFlowRight(flow, sourceI, sourceJ);
+                            if (!isValidRow(sourceI) || !isValidColumn(sourceJ) || !isValidRow(destinationI) || !isValidRow(destinationJ)) {
+                                throw new InputException(newLine);
+                            }
+                            try {
+                                grid.setFlow(flow, sourceI, sourceJ, destinationI, destinationJ);
+                            } catch (Exception e) {
+                                throw new InputException(newLine);
                             }
                         } else {
                             throw new InputException(newLine);
@@ -96,11 +123,24 @@ public class ConfigParser {
                         Matcher matcher = TaxiRegexPattern.matcher(newLine);
                         if (matcher.matches()) {
                             int num = Integer.parseInt(matcher.group(1));
+                            if (num < 0 || num > Taxi.MAX_INDEX) {
+                                throw new InputException(newLine);
+                            }
                             int statusIdx = Integer.parseInt(matcher.group(2));
+                            if (statusIdx != TaxiState.Idle.ordinal()) {
+                                throw new InputException(newLine);
+                            }
                             int credit = Integer.parseInt(matcher.group(3));
+                            System.out.println("credit: " + credit);
                             int i = Integer.parseInt(matcher.group(4));
+                            if (!isValidRow(i)) {
+                                throw new InputException(newLine);
+                            }
                             int j = Integer.parseInt(matcher.group(5));
-                            taxiList.add(new Taxi(num, TaxiState.values()[statusIdx], credit, i, j));
+                            if (!isValidColumn(j)) {
+                                throw new InputException(newLine);
+                            }
+                            taxiSettingList.add(new Taxi(num, TaxiState.values()[statusIdx], credit, i, j));
                         } else {
                             throw new InputException(newLine);
                         }
@@ -112,7 +152,7 @@ public class ConfigParser {
                 case Request:
                     newLine = matchLine(requestBeginRegex, newLine);
                     while (!peekLine(requestEndRegex, newLine)) {
-                        requestList.add(RequestParser.Parse(newLine));
+                        newRequestList.add(RequestParser.Parse(newLine));
                         newLine = scanner.nextLine().trim();
                     }
                     newLine = matchLine(requestEndRegex, newLine);
@@ -143,6 +183,14 @@ public class ConfigParser {
 
     private Boolean peekLine(String regex, String line) {
         return Pattern.matches(regex, line);
+    }
+
+    public Grid getGrid() {
+        return grid;
+    }
+
+    public List<Taxi> getTaxiList() {
+        return taxiSettingList;
     }
 
 }

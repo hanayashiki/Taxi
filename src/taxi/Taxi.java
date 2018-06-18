@@ -1,10 +1,13 @@
 package taxi;
 
 public class Taxi extends Thread {
+    public static final int MAX_INDEX = 99;
+
     private int index;
     private int i;
     private int j;
     private TaxiState state;
+
     private int credit;
 
     public Taxi(int index, int i, int j) {
@@ -17,8 +20,8 @@ public class Taxi extends Thread {
 
     public Taxi(int index, TaxiState state, int credit, int i, int j) {
         this.index = index;
-        this.state = TaxiState.Idle;
-        this.credit = 0;
+        this.state = state;
+        this.credit = credit;
         this.i = i;
         this.j = j;
     }
@@ -27,6 +30,25 @@ public class Taxi extends Thread {
 
     }
 
+    public int getIndex() {
+        return index;
+    }
+
+    public int getI() {
+        return i;
+    }
+
+    public int getJ() {
+        return j;
+    }
+
+    public TaxiState getTaxiState() {
+        return state;
+    }
+
+    public int getCredit() {
+        return credit;
+    }
 }
 
 class IdleWalk {

@@ -1,0 +1,17 @@
+#fuck you leather man#
+
+#map
+
+#end_map
+
+#flow
+
+#end_flow
+
+#taxi
+1, 2, 100, (0, 0)
+  2  , 2  ,    +  150 , (  +   80  , +   0  )
+#end_taxi
+
+#request
+#end_request

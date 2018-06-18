@@ -128,7 +128,12 @@ public class PathDrawer {
     }
 
     public String drawPath(List<Node> path, Adjacency [][] grid) {
-        Adjacency [][] new_grid = grid.clone();
+        Adjacency [][] new_grid = new Adjacency[Grid.GRID_COL_NUM][Grid.GRID_ROW_NUM];
+        for (int i = 0; i < new_grid.length; i++) {
+            for (int j = 0; j < new_grid.length; j++) {
+                new_grid[i][j] = grid[i][j];
+            }
+        }
         for (Node node : path) {
             new_grid[node.getI()][node.getJ()] = OTHER;
         }

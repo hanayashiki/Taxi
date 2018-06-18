@@ -10,6 +10,12 @@ public class Grid {
     private int[][] rightFlow; // flow of (i, j) to the right side
     private int[][] downFlow;  // flow of (i, j) to the down side
 
+    public Grid() {
+        this.grid = new Adjacency[GRID_ROW_NUM][GRID_COL_NUM];
+        this.rightFlow = new int[GRID_ROW_NUM][GRID_COL_NUM];
+        this.downFlow = new int[GRID_ROW_NUM][GRID_COL_NUM];
+    }
+
     public Grid(Adjacency[][] grid) {
         this.grid = grid;
         this.rightFlow = new int[GRID_ROW_NUM][GRID_COL_NUM];
@@ -44,6 +50,26 @@ public class Grid {
         return getAdjacentNodes(node.getI(), node.getJ());
     }
 
+    synchronized public int getFlow(int sourceI, int sourceJ, int targetI, int targetJ) {
+        // UP
+        if (targetI == sourceI - 1 && targetJ == sourceJ) {
+            return this.downFlow[targetI][targetJ];
+        }
+        // left
+        if (targetI == sourceI && targetJ == sourceJ - 1) {
+            return this.rightFlow[targetI][targetJ];
+        }
+        // right
+        if (targetI == sourceI && targetJ == sourceJ + 1) {
+            return this.rightFlow[sourceI][sourceJ];
+        }
+        // down
+        if (targetI == sourceI + 1 && targetJ == sourceJ) {
+            return this.downFlow[sourceI][sourceJ];
+        }
+        throw new RuntimeException("Wrong param");
+    }
+
     synchronized public void setFlowRight(int flow, int i, int j) {
         rightFlow[i][j] = flow;
     }
@@ -51,4 +77,6 @@ public class Grid {
     synchronized public void setFlowDown(int flow, int i, int j) {
         downFlow[i][j] = flow;
     }
+
+    synchronized public void setGrid(Adjacency value, int i, int j) { grid[i][j] = value; }
 }

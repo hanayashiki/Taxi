@@ -9,6 +9,12 @@ public class Node implements Comparable<Node> {
 
     private Node precedent = null;
 
+    public Node(int i, int j) {
+        this.i = i;
+        this.j = j;
+        this.flow = 0;
+    }
+
     public Node(int i, int j, int flow) {
         this.i = i;
         this.j = j;
@@ -70,7 +76,7 @@ public class Node implements Comparable<Node> {
         } else if (this.distance > that.distance) {
             return 1;
         } else {
-            return new Integer(this.distance).compareTo(that.distance);
+            return new Integer(this.flowSum).compareTo(that.flowSum);
         }
     }
 

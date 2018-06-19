@@ -6,7 +6,9 @@ import java.util.concurrent.BlockingQueue;
 
 public class RequestManager extends Thread {
     BlockingQueue<Request> requestQueue;
-    public RequestManager(Grid grid, BlockingQueue<Request> requestQueue) {
+    Global global;
+    public RequestManager(Global global, BlockingQueue<Request> requestQueue) {
+        this.global = global;
         this.requestQueue = requestQueue;
     }
     @Override
@@ -22,7 +24,7 @@ public class RequestManager extends Thread {
                 // TODO
             }
             if (request instanceof LoadRequest) {
-
+                global.loadConfig((LoadRequest) request);
             }
             if (request instanceof EndRequest) {
                 // TODO

@@ -30,24 +30,28 @@ public class Taxi extends Thread {
 
     }
 
-    public int getIndex() {
+    synchronized public int getIndex() {
         return index;
     }
 
-    public int getI() {
+    synchronized public int getI() {
         return i;
     }
 
-    public int getJ() {
+    synchronized public int getJ() {
         return j;
     }
 
-    public TaxiState getTaxiState() {
+    synchronized public TaxiState getTaxiState() {
         return state;
     }
 
-    public int getCredit() {
+    synchronized public int getCredit() {
         return credit;
+    }
+
+    synchronized public void receiveRequest(CustomerRequest request) {
+        // TODO
     }
 }
 

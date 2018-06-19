@@ -34,22 +34,15 @@ public class Global {
         }
     }
 
-    public void loadStatus(LoadRequest loadRequest) {
+    public void loadConfig(LoadRequest loadRequest) {
         try {
             synchronized (grid) {
                 FileInputStream inputStream = new FileInputStream(loadRequest.getFilePath());
                 ConfigParser configParser = new ConfigParser(inputStream, grid);
                 configParser.parse(); // grid modified
-                configParser.getTaxiList().sort((x, y) -> new Integer(x.getIndex()).compareTo(y.getIndex()));
-                List<Taxi> taxiSettingList = configParser.getTaxiList();
-                for (int i = 0, j = 0; i < taxiList.size() && j < taxiSettingList.size();) {
-                    if (i < taxiSettingList.get(j).getIndex()) {
-                        i++;
-                    } else {
-                        taxiSettingList.set(j, taxiSettingList.get(j));
-                        i++;
-                        j++;
-                    }
+                for (Taxi taxi : configParser.getTaxiList()) {
+                    int index = taxi.getIndex();
+                    taxiList.set(index, taxi); // TODO: problems with taxi thread
                 }
             }
 

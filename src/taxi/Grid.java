@@ -1,6 +1,7 @@
 package taxi;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class Grid {
@@ -9,11 +10,18 @@ public class Grid {
     private Adjacency[][] adjacencyGrid;
     private int[][] rightFlow; // flow of (i, j) to the right side
     private int[][] downFlow;  // flow of (i, j) to the down side
+    private RequestWindowSet[][] requestWindowSet;
 
     public Grid() {
         this.adjacencyGrid = new Adjacency[GRID_ROW_NUM][GRID_COL_NUM];
         this.rightFlow = new int[GRID_ROW_NUM][GRID_COL_NUM];
         this.downFlow = new int[GRID_ROW_NUM][GRID_COL_NUM];
+        this.requestWindowSet = new RequestWindowSet[GRID_ROW_NUM][GRID_COL_NUM];
+        for (int i = 0; i < GRID_ROW_NUM; i++) {
+            for (int j = 0; j < GRID_COL_NUM; j++) {
+                this.requestWindowSet[i][j] = new RequestWindowSet();
+            }
+        }
     }
 
     public Grid(Adjacency[][] grid) {
@@ -103,5 +111,17 @@ public class Grid {
 
     synchronized public Adjacency getAdjacency(int i, int j) {
         return adjacencyGrid[i][j];
+    }
+
+    synchronized public void addRequestWindow(RequestWindow requestWindow, int i, int j) {
+        this.requestWindowSet[i][j].put(requestWindow);
+    }
+
+    synchronized public void removeRequestWindow(RequestWindow requestWindow, int i, int j) {
+        this.requestWindowSet[i][j].remove(requestWindow);
+    }
+
+    synchronized public boolean isEmptyRequestWindow(int i, int j) {
+        return this.requestWindowSet[i][j].isEmpty();
     }
 }

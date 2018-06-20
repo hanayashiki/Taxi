@@ -1,8 +1,9 @@
 package taxi;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+
+import utils.AdjacencyUtils;
+import utils.Copy;
 
 public class Grid {
     public static final int GRID_COL_NUM = 80;
@@ -13,6 +14,10 @@ public class Grid {
     private RequestWindowSet[][] requestWindowSet;
 
     public Grid() {
+        initGrid();
+    }
+
+    private void initGrid() {
         this.adjacencyGrid = new Adjacency[GRID_ROW_NUM][GRID_COL_NUM];
         this.rightFlow = new int[GRID_ROW_NUM][GRID_COL_NUM];
         this.downFlow = new int[GRID_ROW_NUM][GRID_COL_NUM];
@@ -25,9 +30,8 @@ public class Grid {
     }
 
     public Grid(Adjacency[][] grid) {
+        initGrid();
         this.adjacencyGrid = grid;
-        this.rightFlow = new int[GRID_ROW_NUM][GRID_COL_NUM];
-        this.downFlow = new int[GRID_ROW_NUM][GRID_COL_NUM];
     }
 
     synchronized public List<Node> getAdjacentNodes(int i, int j) {
@@ -109,6 +113,20 @@ public class Grid {
 
     synchronized public void setGrid(Adjacency value, int i, int j) { adjacencyGrid[i][j] = value; }
 
+    synchronized public void connect(int i1, int j1, int i2, int j2) {
+        AdjacencyUtils.connect(adjacencyGrid, i1, j1, i2, j2);
+    }
+
+    synchronized public void disjoin(int i1, int j1, int i2, int j2) {
+        AdjacencyUtils.disjoin(adjacencyGrid, i1, j1, i2, j2);
+    }
+
+    synchronized public Adjacency[][] getGridClone() {
+        Adjacency [][] adjacencies = new Adjacency[GRID_ROW_NUM][GRID_COL_NUM];
+        Copy.copy2d(this.adjacencyGrid, adjacencies);
+        return adjacencies;
+    }
+
     synchronized public Adjacency getAdjacency(int i, int j) {
         return adjacencyGrid[i][j];
     }
@@ -123,5 +141,14 @@ public class Grid {
 
     synchronized public boolean isEmptyRequestWindow(int i, int j) {
         return this.requestWindowSet[i][j].isEmpty();
+    }
+
+    synchronized public List<RequestWindow> getRequestWindows(int i, int j) {
+        ArrayList<RequestWindow> requestWindows = new ArrayList<>();
+        Iterator<Map.Entry<Integer, RequestWindow>> iter = this.requestWindowSet[i][j].entrySet().iterator();
+        while (iter.hasNext()) {
+            requestWindows.add(iter.next().getValue());
+        }
+        return requestWindows;
     }
 }

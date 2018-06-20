@@ -1,5 +1,7 @@
 package taxi;
 
+import utils.Index;
+
 public class CustomerRequest extends Request {
     private int sourceI;
     private int sourceJ;
@@ -12,13 +14,9 @@ public class CustomerRequest extends Request {
         this.sourceJ = sourceJ;
         this.destinationI = destinationI;
         this.destinationJ = destinationJ;
-        if (!(checkIndex(sourceI) && checkIndex(sourceJ) && checkIndex(destinationI) && checkIndex(destinationJ))) {
+        if (!(Index.checkIndex(sourceI) && Index.checkIndex(sourceJ) && Index.checkIndex(destinationI) && Index.checkIndex(destinationJ))) {
             throw new IllegalArgumentException();
         }
-    }
-
-    public boolean checkIndex(int index) {
-        return index < 0 || index >= Grid.GRID_ROW_NUM;
     }
 
     public int getSourceI() {

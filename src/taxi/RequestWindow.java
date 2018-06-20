@@ -1,8 +1,9 @@
 package taxi;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import utils.Verbose;
+import utils.Index;
+
+import java.util.*;
 
 public class RequestWindow extends Thread {
     public static final int WINDOW_LENGTH = 7500;
@@ -16,7 +17,8 @@ public class RequestWindow extends Thread {
 
     private List<Taxi> interestedTaxiList = new LinkedList<>();
 
-    public RequestWindow(long timeStart, long timeEnd, CustomerRequest customerRequest) {
+    public RequestWindow(Grid grid, long timeStart, long timeEnd, CustomerRequest customerRequest) {
+        this.grid = grid;
         this.timeStart = timeStart;
         this.timeEnd = timeEnd;
         this.customerRequest = customerRequest;
@@ -30,7 +32,9 @@ public class RequestWindow extends Thread {
         synchronized (grid) {
             for (int i = centerI - 2; i <= centerI + 2; i++) {
                 for (int j = centerJ - 2; j <= centerJ + 2; j++) {
-                    grid.addRequestWindow(this, i, j);
+                    if (Index.checkIndex(i) && Index.checkIndex(j)) {
+                        grid.addRequestWindow(this, i, j);
+                    }
                 }
             }
         }
@@ -43,7 +47,9 @@ public class RequestWindow extends Thread {
         synchronized (grid) {
             for (int i = centerI - 2; i <= centerI + 2; i++) {
                 for (int j = centerJ - 2; j <= centerJ + 2; j++) {
-                    grid.removeRequestWindow(this, i, j);
+                    if (Index.checkIndex(i) && Index.checkIndex(j)) {
+                        grid.removeRequestWindow(this, i, j);
+                    }
                 }
             }
         }
@@ -65,6 +71,10 @@ public class RequestWindow extends Thread {
         return index;
     }
 
+    synchronized void grabRequest(Taxi taxi) {
+        interestedTaxiList.add(taxi);
+    }
+
     @Override
     public void run() {
         addGridRequestWindowSet(grid);
@@ -75,13 +85,14 @@ public class RequestWindow extends Thread {
         }
         removeGridRequestWindowSet(grid);
 
+        long time1 = System.currentTimeMillis();
+
         Taxi nearestTaxi = null;
         int minDistance = Integer.MAX_VALUE;
         SPF spf = new SPF(this.grid);
         for (Taxi taxi : interestedTaxiList) {
-            // TODO: check taxi status
             synchronized (taxi) {
-                if (taxi.getTaxiState() != TaxiState.Serving) {
+                if (taxi.getTaxiState() != TaxiState.Idle) {
                     continue;
                 }
                 int taxiPathLength = spf.getShortestPath(taxi.getI(), taxi.getJ(),
@@ -93,10 +104,18 @@ public class RequestWindow extends Thread {
                 }
             }
         }
+
+        long time2 = System.currentTimeMillis();
+
         if (nearestTaxi != null) {
             // TODO: output
+            Verbose.printlnAt("Deciding who to fuck "
+                    +  this.customerRequest.getOriginalString() + " used " + (time2 - time1) + "ms. ");
             nearestTaxi.receiveRequest(this.customerRequest);
+            Verbose.printlnAt(String.format("Taxi %d gets CustomerRequest %s",
+                    nearestTaxi.getIndex(), this.customerRequest.getOriginalString()));
         } else {
+            Verbose.printlnAt("No one answers " + customerRequest.getOriginalString());
             // TODO: output
         }
     }
@@ -104,6 +123,11 @@ public class RequestWindow extends Thread {
 
 class RequestWindowSet {
     private HashMap<Integer, RequestWindow> windowSet;
+
+    public RequestWindowSet() {
+        this.windowSet = new HashMap<>();
+    }
+
     public void put(RequestWindow r) {
         windowSet.put(r.getIndex(), r);
     }
@@ -112,5 +136,8 @@ class RequestWindowSet {
     }
     public boolean isEmpty() {
         return windowSet.isEmpty();
+    }
+    public Set<Map.Entry<Integer, RequestWindow>> entrySet() {
+        return windowSet.entrySet();
     }
 }

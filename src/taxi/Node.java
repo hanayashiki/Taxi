@@ -84,5 +84,11 @@ public class Node implements Comparable<Node> {
     public String toString() {
         return "(" + i + ", " + j + ")";
     }
+
+    public boolean samePos(Node node) {
+        if (node == null) {
+            return false;
+        } else return this.getI() == node.getI() && this.getJ() == node.getJ();
+    }
 }
 

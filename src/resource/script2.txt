@@ -1,0 +1,6 @@
+1000:Load src/resource/config1.txt
+2000:Open (1, 1), (1, 2)
+3000:Close (1, 1), (1, 2)
+3000:Close (1, 1), (2, 1)
+4000:Close (80, 80), (2, 1)
+5000:Close (1, 1), (1, 1)

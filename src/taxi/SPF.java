@@ -8,12 +8,25 @@ public class SPF {
         this.grid = grid;
     }
     public List<Node> getShortestPath(int startI, int startJ, int targetI, int targetJ, String algorithm) {
-        if (algorithm.equals("dijkstra")) {
-            return dijkstra(startI, startJ, targetI, targetJ);
-        } else if (algorithm.equals("bfs")) {
-            return bfs(startI, startJ, targetI, targetJ);
+        synchronized (grid) {
+            if (algorithm.equals("dijkstra")) {
+                return dijkstra(startI, startJ, targetI, targetJ);
+            } else if (algorithm.equals("bfs")) {
+                return bfs(startI, startJ, targetI, targetJ);
+            } else {
+                throw new RuntimeException("Invalid algorithm name");
+            }
+        }
+    }
+    public Node getNextStep(int startI, int startJ, int targetI, int targetJ, String algorithm) {
+        // TODO: optimize
+        List<Node> path = getShortestPath(startI, startJ, targetI, targetJ, algorithm);
+        if (path.size() > 1) {
+            return path.get(1);
+        } else if (path.size() == 1) {
+            throw new RuntimeException(String.format("Already arrived at (%d, %d)", targetI, targetJ));
         } else {
-            throw new RuntimeException("Invalid algorithm name");
+            return null;
         }
     }
     public List<Node> generatePath(Node node) {

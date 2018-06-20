@@ -12,9 +12,12 @@ public class RequestParser {
             "Load\\s+(.*)";
     private static final String endRequestRegex =
             "End";
+    private static final String pathRequestRegex =
+            "(Open|Close)\\s*\\(\\s*\\+?\\s*([0-9]+)\\s*,\\s*\\+?\\s*([0-9]+)\\s*\\)\\s*,\\s*\\(\\s*\\+?\\s*([0-9]+)\\s*,\\s*\\+?\\s*([0-9]+)\\s*\\)";
     private static final Pattern customerRequestPattern = Pattern.compile(customerRequestRegex);
     private static final Pattern loadRequestPattern = Pattern.compile(loadRequestRegex);
     private static final Pattern endRequestPattern = Pattern.compile(endRequestRegex);
+    private static final Pattern pathRequestPattern = Pattern.compile(pathRequestRegex);
 
 
     public static Request Parse(String input) throws InputException {
@@ -22,22 +25,43 @@ public class RequestParser {
         Matcher customerRequestMatcher = customerRequestPattern.matcher(trimmedInput);
         Matcher loadRequestMatcher = loadRequestPattern.matcher(trimmedInput);
         Matcher endRequestMatcher = endRequestPattern.matcher(trimmedInput);
+        Matcher pathRequestMatcher = pathRequestPattern.matcher(trimmedInput);
         if (customerRequestMatcher.matches()) {
             try {
                 int sourceI = Integer.parseInt(customerRequestMatcher.group(1));
                 int sourceJ = Integer.parseInt(customerRequestMatcher.group(2));
                 int targetI = Integer.parseInt(customerRequestMatcher.group(3));
                 int targetJ = Integer.parseInt(customerRequestMatcher.group(4));
-                return new CustomerRequest(sourceI, sourceJ, targetI, targetJ);
+                CustomerRequest customerRequest = new CustomerRequest(sourceI, sourceJ, targetI, targetJ);
+                customerRequest.setOriginalString(input);
+                return customerRequest;
             } catch (IllegalArgumentException e) {
                 throw new InputException(input);
             }
         }
         if (loadRequestMatcher.matches()) {
-            return new LoadRequest(loadRequestMatcher.group(1));
+            LoadRequest loadRequest = new LoadRequest(loadRequestMatcher.group(1));
+            loadRequest.setOriginalString(input);
+            return loadRequest;
         }
         if (endRequestMatcher.matches()) {
-            return new EndRequest();
+            EndRequest endRequest = new EndRequest();
+            endRequest.setOriginalString(input);
+            return endRequest;
+        }
+        if (pathRequestMatcher.matches()) {
+            try {
+                String type = pathRequestMatcher.group(1);
+                int sourceI = Integer.parseInt(pathRequestMatcher.group(2));
+                int sourceJ = Integer.parseInt(pathRequestMatcher.group(3));
+                int targetI = Integer.parseInt(pathRequestMatcher.group(4));
+                int targetJ = Integer.parseInt(pathRequestMatcher.group(5));
+                PathRequest pathRequest = new PathRequest(type, sourceI, sourceJ, targetI, targetJ);
+                pathRequest.setOriginalString(input);
+                return pathRequest;
+            } catch (IllegalArgumentException e) {
+                throw new InputException(input);
+            }
         }
 
         throw new InputException(input);

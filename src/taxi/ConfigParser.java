@@ -58,7 +58,12 @@ public class ConfigParser {
     }
 
     public void parse() throws InputException {
-        String newLine = scanner.nextLine().trim();
+        String newLine;
+        if (scanner.hasNextLine()) {
+            newLine = scanner.nextLine().trim();
+        } else {
+            throw new InputException("empty config loaded. ");
+        }
         while (true) {
             switch (status) {
                 case Header:
@@ -131,7 +136,7 @@ public class ConfigParser {
                                 throw new InputException(newLine);
                             }
                             int credit = Integer.parseInt(matcher.group(3));
-                            System.out.println("credit: " + credit);
+                            // System.out.println("credit: " + credit);
                             int i = Integer.parseInt(matcher.group(4));
                             if (!isValidRow(i)) {
                                 throw new InputException(newLine);
@@ -140,7 +145,7 @@ public class ConfigParser {
                             if (!isValidColumn(j)) {
                                 throw new InputException(newLine);
                             }
-                            taxiSettingList.add(new Taxi(num, TaxiState.values()[statusIdx], credit, i, j));
+                            taxiSettingList.add(new Taxi(null, num, TaxiState.values()[statusIdx], credit, i, j));
                         } else {
                             throw new InputException(newLine);
                         }
@@ -162,7 +167,7 @@ public class ConfigParser {
     }
 
     private String matchLine(String regex, String line) throws InputException {
-        System.out.println("matching: " + line);
+        // System.out.println("matching: " + line);
         if (!Pattern.matches(regex, line)) {
             throw new InputException(line);
         }

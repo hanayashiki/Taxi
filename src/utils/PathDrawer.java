@@ -52,51 +52,24 @@ public class PathDrawer {
 
     public void connect(int i1, int j1, int i2, int j2) {
         // 2 at top
-        if (i1 - 1 == i2) {
-            connectDown(i2, j2);
-        }
-        // 2 at left
-        if (j2 == j1 - 1) {
-            connectRight(i2, j2);
-        }
-        // 2 at right
-        if (j2 == j1 + 1) {
-            connectRight(i1, j1);
-        }
-        // 2 at down
-        if (i1 + 1 == i2) {
-            connectDown(i1, j1);
-        }
+        AdjacencyUtils.connect(grid, i1, j1, i2, j2);
     }
 
     public void connectRight(int i, int j) {
-        switch (grid[i][j]) {
-            case LEAF:
-                grid[i][j] = Adjacency.RIGHT;
-                break;
-            case DOWN:
-                grid[i][j] = Adjacency.BOTH;
-                break;
-        }
+        AdjacencyUtils.connectRight(grid, i, j);
     }
 
     public void connectDown(int i, int j) {
-        switch (grid[i][j]) {
-            case LEAF:
-                grid[i][j] = Adjacency.DOWN;
-                break;
-            case RIGHT:
-                grid[i][j] = Adjacency.BOTH;
-                break;
-        }
+        AdjacencyUtils.connectDown(grid, i, j);
     }
     @Override
     public String toString() {
         return gridToString(this.grid);
     }
 
-    public String gridToString(Adjacency [][] grid) {
+    public static String gridToString(Adjacency [][] grid) {
         StringBuilder sb = new StringBuilder();
+        sb.append("\n");
         for (int i = 0; i < Grid.GRID_ROW_NUM; i++) {
             sb.append(i + "\t:");
             for (int j = 0; j < Grid.GRID_COL_NUM; j++) {

@@ -1,0 +1,2 @@
+1000:Load src/resource/config1.txt
+2000:[CR, (1, 1), (10, 10)]

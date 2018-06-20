@@ -16,21 +16,30 @@ import static taxi.ConfigParser.Status.Map;
 
 public class Global {
     public static long timeZeroPoint = System.currentTimeMillis();
-    public static Grid grid;
-    public static List<Taxi> taxiList;
+    public Grid grid;
+    public List<Taxi> taxiList;
 
     public Global(int taxiCount) {
         Adjacency[][] adjacencies = new Adjacency[Grid.GRID_ROW_NUM][Grid.GRID_COL_NUM];
-        for (int i = 0; i < Grid.GRID_ROW_NUM; i++) {
-            for (int j = 0; j < Grid.GRID_COL_NUM; j++) {
+        for (int i = 0; i < Grid.GRID_ROW_NUM - 1; i++) {
+            for (int j = 0; j < Grid.GRID_COL_NUM - 1; j++) {
                 adjacencies[i][j] = Adjacency.BOTH;
             }
         }
+        for (int i = 0; i < Grid.GRID_ROW_NUM - 1; i++) {
+            adjacencies[i][Grid.GRID_COL_NUM - 1] = Adjacency.DOWN;
+        }
+        for (int j = 0; j < Grid.GRID_COL_NUM - 1; j++) {
+            adjacencies[Grid.GRID_ROW_NUM - 1][j] = Adjacency.RIGHT;
+        }
+        adjacencies[Grid.GRID_ROW_NUM - 1][Grid.GRID_COL_NUM - 1] = Adjacency.LEAF;
+
         grid = new Grid(adjacencies);
+
 
         taxiList = new ArrayList<>(taxiCount);
         for (int idx = 0; idx < taxiCount; idx++) {
-            taxiList.add(new Taxi(idx, 0, 0)); // TODO: fix this
+            taxiList.add(new Taxi(grid, idx, 0, 0)); // TODO: fix this
         }
     }
 
@@ -42,7 +51,7 @@ public class Global {
                 configParser.parse(); // grid modified
                 for (Taxi taxi : configParser.getTaxiList()) {
                     int index = taxi.getIndex();
-                    taxiList.set(index, taxi); // TODO: problems with taxi thread
+                    taxiList.get(index).copyStatus(taxi);
                 }
             }
 
@@ -53,10 +62,17 @@ public class Global {
         }
     }
 
+    public void startTaxiThreads() {
+        for (Taxi taxi : taxiList) {
+            taxi.start();
+        }
+    }
 
     public static long getRelativeTime() {
         return System.currentTimeMillis() - timeZeroPoint;
     }
+
+
 
 }
 
